@@ -1,5 +1,9 @@
 # Created by https://www.gitignore.io
 
+.sass-cache
+dist/
+.tmp/
+
 ### OSX ###
 .DS_Store
 .AppleDouble
