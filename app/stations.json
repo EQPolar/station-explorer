@@ -1,0 +1,37 @@
+[
+    {
+        "idx": 0,
+        "crsCode": "ABA",
+        "stationName": "Aberdare Rail Station",
+        "lat": 51.71506,
+        "long": -3.443095
+    },
+    {
+        "idx": 1,
+        "crsCode": "AUR",
+        "stationName": "Aberdour Rail Station",
+        "lat": 56.054585,
+        "long": -3.300559
+    },
+    {
+        "idx": 2,
+        "crsCode": "AVY",
+        "stationName": "Aberdovey Rail Station",
+        "lat": 52.543971,
+        "long": -4.057076
+    },
+    {
+        "idx": 3,
+        "crsCode": "ABE",
+        "stationName": "Aber Rail Station",
+        "lat": 51.574966,
+        "long": -3.229839
+    },
+    {
+        "idx": 4,
+        "crsCode": "AGL",
+        "stationName": "Abergele & Pensarn Rail Station",
+        "lat": 53.294589,
+        "long": -3.582625
+    }
+]
