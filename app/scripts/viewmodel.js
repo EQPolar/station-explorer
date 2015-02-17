@@ -1,31 +1,20 @@
-// Get cookie from last session if exists.  If does exist set map center to last
-// location and set current station to station from cookie
-
-// Load Map
-
-// Place Markers on the map
-
-
-// Bind Click events to all markers
-
-// Watch station name, if station name changes, update all the info in the sidebar
-
-/* jshint devel:true */
-
 // Map object, container for all map view functions
 // center should be a lat/lng object literal
+'use strict';
 
-function Map(center) = {
+function Map(center) {
   this.center = center;
 
   // init map function
   this.initialize = function() {
+    // call Stations.load, when Stations.load is complete it will callback
+    // the rest of the initialize function
     Stations.load(function() {
       var s = Stations.data;
 
       var mapOptions = {
-        zoom: 4,
-        center: APP.defaultMapCenter
+        zoom: 10,
+        center: center
       };
       map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
@@ -34,10 +23,15 @@ function Map(center) = {
 
         var marker = new google.maps.Marker({
           position: myLatlng,
-          title: "Hello World!"
+          title: 'Hello World!',
+          name: s[i]
         });
         marker.setMap(map);
-
+        console.log(marker);
+        var tmp = marker.name.idx;
+        google.maps.event.addListener(marker, 'click', function(tmp) {
+          Stations.setLocation(i);
+        });
       }
     });
   };
