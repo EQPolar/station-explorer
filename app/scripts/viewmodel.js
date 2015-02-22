@@ -13,8 +13,10 @@ function Map(center) {
       var s = Stations.data;
 
       var mapOptions = {
-        zoom: 10,
-        center: center
+
+        zoom: 4,
+        center: APP.defaultMapCenter
+
       };
       map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
