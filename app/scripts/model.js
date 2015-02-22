@@ -26,5 +26,6 @@ Stations.load = function(callback) {
 };
 
 Stations.setLocation = function(i) {
+  // TODO: set a watched var to trigger JSON requests when station is clicked
   console.log(i);
 };

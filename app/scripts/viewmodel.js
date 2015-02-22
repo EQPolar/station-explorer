@@ -23,15 +23,14 @@ function Map(center) {
 
         var marker = new google.maps.Marker({
           position: myLatlng,
-          title: 'Hello World!',
-          name: s[i]
+          title: s[i].stationName + ' [' + s[i].crsCode + ']'
         });
         marker.setMap(map);
-        console.log(marker);
-        var tmp = marker.name.idx;
-        google.maps.event.addListener(marker, 'click', function(tmp) {
-          Stations.setLocation(i);
-        });
+        google.maps.event.addListener(marker, 'click', (function(iCopy) {
+          return function() {
+            Stations.setLocation(iCopy);
+          }
+        })(i));
       }
     });
   };
