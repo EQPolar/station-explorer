@@ -14,7 +14,7 @@ function Map(center) {
 
       var mapOptions = {
 
-        zoom: 4,
+        zoom: 6,
         center: APP.defaultMapCenter
 
       };
