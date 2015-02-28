@@ -11,7 +11,11 @@ Stations.load = function(callback) {
     $.getJSON('../stations.json')
       .done(function(json) {
         Stations.data = json;
+
+        // for now initilize currentStation to Huddersfield
+        Stations.setLocation(APP.defaultStation);
         console.log(Stations.data.length + ' stations loaded.');
+
         if (callback && typeof(callback) === 'function') {
           callback();
         }
@@ -26,6 +30,10 @@ Stations.load = function(callback) {
 };
 
 Stations.setLocation = function(i) {
-  // TODO: set a watched var to trigger JSON requests when station is clicked
-  console.log(i);
+  Stations.currentStation = {
+    idx: Stations.data[i].idx,
+    crsCode: Stations.data[i].crsCode,
+    stationName: Stations.data[i].stationName
+  };
+  console.log(Stations.currentStation);
 };

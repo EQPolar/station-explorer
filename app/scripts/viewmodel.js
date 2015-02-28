@@ -2,46 +2,68 @@
 // center should be a lat/lng object literal
 'use strict';
 
-function Map(center) {
+function MapController(center) {
   this.center = center;
 
   // init map function
   this.initialize = function() {
     // call Stations.load, when Stations.load is complete it will callback
     // the rest of the initialize function
-    Stations.load(function() {
-      var s = Stations.data;
 
-      var mapOptions = {
+    var s = Stations.data;
 
-        zoom: 6,
-        center: APP.defaultMapCenter
+    var mapOptions = {
 
-      };
-      map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+      zoom: 6,
+      center: APP.defaultMapCenter
 
-      for (var i = 0; i < s.length; i++) {
-        var myLatlng = new google.maps.LatLng(s[i].lat, s[i].long);
+    };
+    var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
-        var marker = new google.maps.Marker({
-          position: myLatlng,
-          title: s[i].stationName + ' [' + s[i].crsCode + ']'
-        });
-        marker.setMap(map);
-        google.maps.event.addListener(marker, 'click', (function(iCopy) {
-          return function() {
-            Stations.setLocation(iCopy);
-          }
-        })(i));
-      }
-    });
+    for (var i = 0; i < s.length; i++) {
+      var myLatlng = new google.maps.LatLng(s[i].lat, s[i].long);
+
+      var marker = new google.maps.Marker({
+        position: myLatlng,
+        title: s[i].stationName + ' [' + s[i].crsCode + ']'
+      });
+      marker.setMap(map);
+      google.maps.event.addListener(marker, 'click', (function(iCopy) {
+        return function() {
+          Stations.setLocation(iCopy);
+        }
+      })(i));
+    }
+
   };
 
   this.display = function() {
     google.maps.event.addDomListener(window, 'load', Map.initialize);
   };
-};
+}
 
-var map = new Map(APP.defaultMapCenter);
-map.initialize();
-map.display();
+function AppController() {
+  this.launch = function() {
+    this.initializeResources();
+  }
+
+  // load resources
+  this.initializeResources = function() {
+    Stations.load(this.initializeDisplay);
+  };
+
+  this.initializeDisplay = function() {
+    var map = new MapController(APP.defaultMapCenter);
+    map.initialize();
+    map.display();
+    Stations.setLocation(APP.defaultStation);
+    ko.applyBindings(Stations.currentStation);
+  };
+}
+
+var app = new AppController();
+app.launch();
+
+
+// bind html
+// ko.applyBindings(Stations.currentStation);
