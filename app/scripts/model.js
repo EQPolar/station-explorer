@@ -29,11 +29,63 @@ Stations.load = function(callback) {
 
 };
 
+Stations.getCurrentStationData = function() {
+  // get current weather :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:=
+  console.log("getting weather...");
+  console.log(this);
+  $.ajax({
+    url: "http://api.openweathermap.org/data/2.5/weather",
+    data: {
+      lat: this.currentStation.lat,
+      lon: this.currentStation.long
+    },
+
+    // Whether this is a POST or GET request
+    type: "GET",
+
+    // The type of data we expect back
+    dataType: "json",
+
+    // Code to run if the request succeeds;
+    // the response is passed to the function
+    success: function(json) {
+      console.log(json);
+      Stations.currentStation.weatherLocationName = json.name;
+      Stations.currentStation.weatherCurrentTemp = json.main.temp - 273.5;  //convert from K to C
+      Stations.currentStation.weatherDescription = json.weather[0].description;
+    },
+
+    // Code to run if the request fails; the raw request and
+    // status codes are passed to the function
+    error: function(xhr, status, errorThrown) {
+      alert("Sorry, there was a problem!");
+      console.log("Error: " + errorThrown);
+      console.log("Status: " + status);
+      console.dir(xhr);
+    },
+
+    // Code to run regardless of success or failure
+    complete: function(xhr, status) {
+
+    }
+  });
+  // get google image
+
+  // get Wikipedia article info
+};
+
 Stations.setLocation = function(i) {
-  Stations.currentStation = {
-    idx: Stations.data[i].idx,
-    crsCode: Stations.data[i].crsCode,
-    stationName: Stations.data[i].stationName
-  };
-  console.log(Stations.currentStation);
+  // only set new Station if a change is necessary
+  if ((typeof Stations.currentStation === "undefined") || (Stations.currentStation.idx !== i)) {
+    Stations.currentStation = {
+      idx: Stations.data[i].idx,
+      crsCode: Stations.data[i].crsCode,
+      stationName: Stations.data[i].stationName,
+      lat: Stations.data[i].lat,
+      long: Stations.data[i].long
+    };
+    console.log("changed!!")
+      // any time the station data changes, make new json calls
+    Stations.getCurrentStationData();
+  }
 };

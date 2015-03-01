@@ -61,8 +61,11 @@ function AppController() {
   };
 }
 
-var app = new AppController();
-app.launch();
+$( document ).ready(function() {
+  var app = new AppController();
+  app.launch();
+});
+
 
 
 // bind html
