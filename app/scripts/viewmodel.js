@@ -50,13 +50,18 @@ function AppController() {
   // load resources
   this.initializeResources = function() {
     Stations.load(this.initializeDisplay);
+    Stations.initialize(function() {
+
+    });
+
   };
 
   this.initializeDisplay = function() {
+    Stations.setLocation(APP.defaultStation);
+
     var map = new MapController(APP.defaultMapCenter);
     map.initialize();
     map.display();
-    Stations.setLocation(APP.defaultStation);
     ko.applyBindings(Stations.currentStation);
   };
 }
@@ -65,8 +70,3 @@ $( document ).ready(function() {
   var app = new AppController();
   app.launch();
 });
-
-
-
-// bind html
-// ko.applyBindings(Stations.currentStation);
