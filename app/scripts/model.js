@@ -8,10 +8,10 @@ var Stations = {};
 Stations.initialize = function(callback) {
   Stations.currentStation = {};
   Stations.currentStation.crsCode = ko.observable();
-  Stations.currentStation.stationName  = ko.observable();
-  Stations.currentStation.weatherLocationName  = ko.observable();
-  Stations.currentStation.weatherCurrentTemp  = ko.observable();
-  Stations.currentStation.weatherDescription  = ko.observable();
+  Stations.currentStation.stationName = ko.observable();
+  Stations.currentStation.weatherLocationName = ko.observable();
+  Stations.currentStation.weatherCurrentTemp = ko.observable();
+  Stations.currentStation.weatherDescription = ko.observable();
   callback();
 };
 
@@ -58,7 +58,7 @@ Stations.getCurrentStationData = function() {
     // the response is passed to the function
     success: function(json) {
       Stations.currentStation.weatherLocationName(json.name);
-      Stations.currentStation.weatherCurrentTemp(json.main.temp - 273.5);  //convert from K to C
+      Stations.currentStation.weatherCurrentTemp(json.main.temp - 273.5); //convert from K to C
       Stations.currentStation.weatherDescription(json.weather[0].description);
     },
 
@@ -76,9 +76,69 @@ Stations.getCurrentStationData = function() {
 
     }
   });
-  // get google image :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:=:
+  // get google image :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:=:=:
 
   // get Wikipedia article info :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:
+  $.ajax({
+
+    // The URL for the request
+    url: "http://en.wikipedia.org/w/api.php",
+
+    // The data to send (will be converted to a query string)
+    data: {
+      action: 'query',
+      format: 'json',
+      // wikipedia article
+      titles: Stations.currentStation.stationName().capitalizeOnlyFirstLetter(),
+      prop: 'extracts',
+      exintro: null,
+      continue: null,
+      redirects: null
+    },
+
+    // Whether this is a POST or GET request
+    type: "GET",
+
+    // The type of data we expect back
+    dataType: "jsonp",
+
+    // Code to run if the request succeeds;
+    // the response is passed to the function
+    success: function(json) {
+      var i, extract;
+      var keys = [];
+      console.log(json);
+
+      for (var i in json.query.pages) {
+        keys.push(i);
+      }
+      console.log(keys);
+
+      // if keys contains more than one item this means wikiepdia sent back
+      // more than one article when we are expecting 1, log to console for now
+      if (keys.length > 1) {
+        console.log ("More than one article key.");
+      }
+
+      // TODO: model should not touch the view, so need to setup a knockout
+      // observable here. Just for testing :)
+      $('.wikiextract').html(json.query.pages[keys[0]].extract);
+    },
+
+    // Code to run if the request fails; the raw request and
+    // status codes are passed to the function
+    error: function(xhr, status, errorThrown) {
+
+      console.log("Error: " + errorThrown);
+      console.log("Status: " + status);
+      console.dir(xhr);
+    },
+
+    // Code to run regardless of success or failure
+    complete: function(xhr, status) {
+      // alert("The request is complete!");
+    }
+  });
 };
 
 Stations.setLocation = function(i) {
@@ -94,3 +154,8 @@ Stations.setLocation = function(i) {
     Stations.getCurrentStationData();
   }
 };
+
+// TODO: when a station is clicked on, information has to be cleared and replaced
+// with a ajax waiting request indication.
+
+// TODO:
