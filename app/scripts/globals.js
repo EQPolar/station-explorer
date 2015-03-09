@@ -18,3 +18,5 @@ APP.defaultStation = 1089;
 
 // API Keys - I know this is bad practice to be fixed with a backend
 APP.openWeatherMapAPIKey = "6557cfc9892774d312f5367ff790360b";
+
+APP.ajaxError = 'could not load data';

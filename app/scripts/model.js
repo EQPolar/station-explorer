@@ -12,6 +12,7 @@ Stations.initialize = function(callback) {
   Stations.currentStation.weatherLocationName = ko.observable();
   Stations.currentStation.weatherCurrentTemp = ko.observable();
   Stations.currentStation.weatherDescription = ko.observable();
+  Stations.currentStation.wikipediaText = ko.observable();
   callback();
 };
 
@@ -79,6 +80,7 @@ Stations.getCurrentStationData = function() {
   // get google image :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:=:=:
 
   // get Wikipedia article info :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:
+  console.log(decodeURI(Stations.currentStation.stationName().capitalizeOnlyFirstLetter()))
   $.ajax({
 
     // The URL for the request
@@ -89,7 +91,7 @@ Stations.getCurrentStationData = function() {
       action: 'query',
       format: 'json',
       // wikipedia article
-      titles: Stations.currentStation.stationName().capitalizeOnlyFirstLetter(),
+      titles: decodeURI(Stations.currentStation.stationName().capitalizeOnlyFirstLetter()),
       prop: 'extracts',
       exintro: null,
       continue: null,
@@ -101,6 +103,8 @@ Stations.getCurrentStationData = function() {
 
     // The type of data we expect back
     dataType: "jsonp",
+
+    timeout: 10000,
 
     // Code to run if the request succeeds;
     // the response is passed to the function
@@ -117,12 +121,12 @@ Stations.getCurrentStationData = function() {
       // if keys contains more than one item this means wikiepdia sent back
       // more than one article when we are expecting 1, log to console for now
       if (keys.length > 1) {
-        console.log ("More than one article key.");
+        console.log("More than one article key.");
       }
 
-      // TODO: model should not touch the view, so need to setup a knockout
-      // observable here. Just for testing :)
-      $('.wikiextract').html(json.query.pages[keys[0]].extract);
+      (keys[0] != -1) ?
+      Stations.currentStation.wikipediaText(json.query.pages[keys[0]].extract):
+        Stations.currentStation.wikipediaText(APP.ajaxError);
     },
 
     // Code to run if the request fails; the raw request and
