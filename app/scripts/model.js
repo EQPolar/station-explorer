@@ -5,15 +5,22 @@
 // Create and empty Stations object to hold station methods and data
 var Stations = {};
 
+// TODO: this whole block belong in the viewmodel!
 Stations.initialize = function(callback) {
   Stations.currentStation = {};
+  Stations.currentStation.query = ko.observable();
   Stations.currentStation.crsCode = ko.observable();
   Stations.currentStation.stationName = ko.observable();
   Stations.currentStation.weatherLocationName = ko.observable();
   Stations.currentStation.weatherCurrentTemp = ko.observable();
   Stations.currentStation.weatherDescription = ko.observable();
   Stations.currentStation.wikipediaText = ko.observable();
-  callback();
+
+
+  Stations.currentStation.queryHandler = function(data, event) {
+    Stations.setLocation(data.query());
+  };
+  // callback();
 };
 
 // Load the stations from the JSON file if not loaded already
@@ -80,7 +87,11 @@ Stations.getCurrentStationData = function() {
   // get google image :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:=:=:
 
   // get Wikipedia article info :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:
-  console.log(decodeURI(Stations.currentStation.stationName().capitalizeOnlyFirstLetter()))
+
+  // TODO: have to implement a way to more reliabile pull the articles.
+  // Probably need to map all article ids and get results that way.
+
+  // console.log(decodeURI(Stations.currentStation.stationName().capitalizeOnlyFirstLetter()))
   $.ajax({
 
     // The URL for the request
@@ -111,12 +122,12 @@ Stations.getCurrentStationData = function() {
     success: function(json) {
       var i, extract;
       var keys = [];
-      console.log(json);
+      // console.log(json);
 
       for (var i in json.query.pages) {
         keys.push(i);
       }
-      console.log(keys);
+      // console.log(keys);
 
       // if keys contains more than one item this means wikiepdia sent back
       // more than one article when we are expecting 1, log to console for now
@@ -145,18 +156,49 @@ Stations.getCurrentStationData = function() {
   });
 };
 
-Stations.setLocation = function(i) {
+// Takes the idx of
+Stations._updateModel = function(i) {
+  Stations.currentStation.idx = Stations.data[i].idx;
+  Stations.currentStation.lat = Stations.data[i].lat;
+  Stations.currentStation.long = Stations.data[i].long;
+  Stations.currentStation.crsCode(Stations.data[i].crsCode);
+  Stations.currentStation.stationName(Stations.data[i].stationName);
+
+  // This is needed if the station is updated by clicking the map so the
+  // search box matches the currently selected station
+  Stations.currentStation.query(Stations.data[i].crsCode);
+};
+
+Stations.setLocationbyCRS = function(code) {
+  // only search if we have a valid CRS code, which is 3 chars
+  if (code.length === 3) {
+
+    // search for the code in our data
+    for (var i = 0, len = Stations.data.length; i < len; i++) {
+      if (code === Stations.data[i].crsCode) {
+        Stations._updateModel(i);
+        break;
+      }
+    }
+  }
+};
+
+Stations.setLocationByIdx = function(i) {
   // only set new Station if a change is necessary
   if ((typeof Stations.currentStation === "undefined") || (Stations.currentStation.idx !== i)) {
-    Stations.currentStation.idx = Stations.data[i].idx;
-    Stations.currentStation.lat = Stations.data[i].lat;
-    Stations.currentStation.long = Stations.data[i].long;
-    Stations.currentStation.crsCode(Stations.data[i].crsCode);
-    Stations.currentStation.stationName(Stations.data[i].stationName);
+    Stations._updateModel(i);
+  }
+};
 
+Stations.setLocation = function(i) {
+  // check to see if the location is the CRS code or index
+  if ($.isNumeric(i)) {
+    Stations.setLocationByIdx(i);
+  } else {
+    Stations.setLocationbyCRS(i);
+  }
     // any time the station data changes, make new json calls
     Stations.getCurrentStationData();
-  }
 };
 
 // TODO: when a station is clicked on, information has to be cleared and replaced

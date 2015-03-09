@@ -29,32 +29,46 @@
 
   <!-- Sidebar -->
   <div class="container">
-    <div class="sidebar">
-      <h5>Current Stations is
-        <span data-bind="text: stationName"></span>
-      </h5>
-      <span>CRS Code:
-        <span data-bind="text: crsCode"></span>
-      </span>
+    <div class="row">
+      <div class="sidebar">
+        <div class="col-lg-3">
+          <form>
+            <p><input data-bind="textInput: query, event: { input: queryHandler }"
+              type="text"/></p>
+          </form>
+          <h5>Current Stations is
+            <span data-bind="text: stationName"></span>
+          </h5>
+          <p>CRS Code:
+            <span data-bind="text: crsCode"></span>
+          </p>
+          <p>Temp:
+            <span data-bind="text: weatherCurrentTemp">
+            </p>
+            <p>Conditions:
+              <span data-bind="text: weatherDescription">
+              </p>
+              <p>Weather Location:
+                <span data-bind="text: weatherLocationName">
+                </p>
+                <hr>
+                <span data-bind="html: wikipediaText"></span>
+        </div>
+        <!-- col -->
+      </div>
+      <!-- sidebar -->
 
-      <span>Temp:
-        <span data-bind="text: weatherCurrentTemp"> -->
-      </span>
-      <span>Conditions:
-        <span data-bind="text: weatherDescription">
-      </span>
-      <span>Weather Location:
-        <span data-bind="text: weatherLocationName">
-      </span>
-      <hr>
-      <span data-bind="html: wikipediaText"></span>
+      <!-- Map -->
+      <div class="col-lg-9">
+        <div id="map-canvas"></div>
+      </div>
+      <!-- col -->
     </div>
+    <!-- row -->
   </div>
-
-  <!-- Map Area -->
-  <div id="map-canvas"></div>
-
+  <!-- container -->
 </body>
+
 <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
 <script>
   (function(b, o, i, l, e, r) {
