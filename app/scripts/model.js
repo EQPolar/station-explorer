@@ -169,7 +169,7 @@ Stations._updateModel = function(i) {
   Stations.currentStation.query(Stations.data[i].crsCode);
 };
 
-Stations.setLocationbyCRS = function(code) {
+Stations._setLocationbyCRS = function(code) {
   // only search if we have a valid CRS code, which is 3 chars
   if (code.length === 3) {
 
@@ -183,7 +183,7 @@ Stations.setLocationbyCRS = function(code) {
   }
 };
 
-Stations.setLocationByIdx = function(i) {
+Stations._setLocationByIdx = function(i) {
   // only set new Station if a change is necessary
   if ((typeof Stations.currentStation === "undefined") || (Stations.currentStation.idx !== i)) {
     Stations._updateModel(i);
@@ -193,9 +193,9 @@ Stations.setLocationByIdx = function(i) {
 Stations.setLocation = function(i) {
   // check to see if the location is the CRS code or index
   if ($.isNumeric(i)) {
-    Stations.setLocationByIdx(i);
+    Stations._setLocationByIdx(i);
   } else {
-    Stations.setLocationbyCRS(i);
+    Stations._setLocationbyCRS(i);
   }
     // any time the station data changes, make new json calls
     Stations.getCurrentStationData();

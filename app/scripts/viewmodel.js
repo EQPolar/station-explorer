@@ -42,7 +42,7 @@ function MapController(center) {
   };
 }
 
-function AppController() {
+function MainViewModel() {
   this.launch = function() {
     this.initializeResources();
   }
@@ -67,6 +67,6 @@ function AppController() {
 }
 
 $( document ).ready(function() {
-  var app = new AppController();
+  var app = new MainViewModel();
   app.launch();
 });
