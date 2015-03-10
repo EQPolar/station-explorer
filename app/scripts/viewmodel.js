@@ -2,7 +2,7 @@
 // center should be a lat/lng object literal
 'use strict';
 
-function MapController(center) {
+function Map(center) {
   this.center = center;
 
   // init map function
@@ -43,30 +43,47 @@ function MapController(center) {
 }
 
 function MainViewModel() {
-  this.launch = function() {
-    this.initializeResources();
-  }
-
-  // load resources
-  this.initializeResources = function() {
-    Stations.load(this.initializeDisplay);
-    Stations.initialize(function() {
-
-    });
-
-  };
-
-  this.initializeDisplay = function() {
-    Stations.setLocation(APP.defaultStation);
-
-    var map = new MapController(APP.defaultMapCenter);
-    map.initialize();
-    map.display();
-    ko.applyBindings(Stations.currentStation);
-  };
+  // to hold an object with station data formatted for autocomplete seach
+  this.queryList = [];
+  var self = this;
 }
+
+MainViewModel.prototype = {
+  constructor: MainViewModel,
+
+  _initializeSearch : (function() {
+    console.log('TODO: build search map and then bind autocomplete.');
+  }),
+
+  launch : function () {
+    this._initialize();
+  },
+
+  _initialize : function () {
+    Stations.load((function () {
+
+      Stations.initialize();
+
+      // set the initial location on page load
+      // TODO: remember last station using a cookie
+      Stations.setLocation(APP.defaultStation);
+
+      // create a new map object, init and display the map
+      var map = new Map(APP.defaultMapCenter);
+      map.initialize();
+      map.display();
+
+      // build a stationlist that is compatabile with jQueryUI autocompelte
+      this._initializeSearch();
+
+      // bind the view to the model
+      ko.applyBindings(Stations.currentStation);
+    }).bind(this));
+  }
+};
 
 $( document ).ready(function() {
   var app = new MainViewModel();
+  console.dir(app);
   app.launch();
 });

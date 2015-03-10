@@ -35,7 +35,7 @@ Stations.load = function(callback) {
         // console.log(Stations.data.length + ' stations loaded.');
 
         if (callback && typeof(callback) === 'function') {
-          callback();
+          callback.apply(this);
         }
       })
       .fail(function(jqxhr, textStatus, error) {
