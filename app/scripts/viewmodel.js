@@ -51,16 +51,32 @@ function MainViewModel() {
 MainViewModel.prototype = {
   constructor: MainViewModel,
 
-  _initializeSearch : (function() {
-    console.log('TODO: build search map and then bind autocomplete.');
-  }),
+  _initializeSearch: function() {
+    for (var i = 0, len = Stations.data.length; i < len; i++) {
+      Stations.currentStation.queryList.push({
+        label: Stations.data[i].stationName + ' [' + Stations.data[i].crsCode + ']',
+        value: Stations.data[i].crsCode
+      });
 
-  launch : function () {
+
+      // this.queryList.push({
+      //   label: Stations.data[i].stationName + ' [' + Stations.data[i].crsCode + ']',
+      //   value: Stations.data[i].crsCode
+      // });
+    }
+
+    console.log(this.queryList);
+    // $("#search").autocomplete({
+    //   source: this.queryList
+    // });
+  },
+
+  launch: function() {
     this._initialize();
   },
 
-  _initialize : function () {
-    Stations.load((function () {
+  _initialize: function() {
+    Stations.load((function() {
 
       Stations.initialize();
 
@@ -82,7 +98,7 @@ MainViewModel.prototype = {
   }
 };
 
-$( document ).ready(function() {
+$(document).ready(function() {
   var app = new MainViewModel();
   console.dir(app);
   app.launch();

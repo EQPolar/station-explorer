@@ -8,6 +8,7 @@ var Stations = {};
 // TODO: this whole block belong in the viewmodel!
 Stations.initialize = function(callback) {
   Stations.currentStation = {};
+  Stations.currentStation.queryList = [];
   Stations.currentStation.query = ko.observable();
   Stations.currentStation.crsCode = ko.observable();
   Stations.currentStation.stationName = ko.observable();
@@ -17,8 +18,8 @@ Stations.initialize = function(callback) {
   Stations.currentStation.wikipediaText = ko.observable();
 
 
-  Stations.currentStation.queryHandler = function(data, event) {
-    Stations.setLocation(data.query());
+  Stations.currentStation.queryHandler = function(event, ui) {
+    Stations.setLocation(ui.item.value);
   };
   // callback();
 };
