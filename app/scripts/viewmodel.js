@@ -156,19 +156,18 @@ MainViewModel.prototype = {
   },
 
   setLocation: function(i) {
-
     // check to see if the location is the CRS code or index
     if ($.isNumeric(i)) {
       this._setLocationByIdx(i);
     } else {
       this._setLocationbyCRS(i);
     }
-    // any time the station data changes, make new json calls
-    this.updateWeather();
 
+    // any time the station data changes, make new json calls
+    this.updateWeather(self.currentStation);
 
     // TODO: wikipedia function
-    // Stations.getWikipeidaSummary(self.currentStation);
+    // this.getWikipeidaSummary(self.currentStation);
   },
 
   _setLocationbyCRS: function(code) {
@@ -187,14 +186,11 @@ MainViewModel.prototype = {
 
   bindMapMarkers: function() {
     for (var i = 0; i < this.map.markers.length; i++) {
-
-      // TODO: this will need to be moved out of the map object and to the viewmodel
       google.maps.event.addListener(this.map.markers[i], 'click', (function(iCopy) {
         return function() {
-          // TODO: this will fix this coupling here
-          // Stations.setLocation(iCopy);
-          console.log(iCopy);
-          this.setLocation.call(this, iCopy);
+          // Stations.setLocation(iCopy) // this worked before but was bad design
+          console.log(iCopy); // this works
+          this.setLocation(iCopy); // this function cannot be found
         }
       })(i));
     }
@@ -220,7 +216,7 @@ MainViewModel.prototype = {
 
       this.bindMapMarkers();
 
-      console.log(this.map.markers);
+      // console.log(this.map.markers);
 
       // build a stationlist that is compatabile with jQueryUI autocompelte
       this._initializeSearch();
@@ -234,7 +230,5 @@ MainViewModel.prototype = {
 
 $(document).ready(function() {
   var app = new MainViewModel();
-  // this.setLocation('LED');
-  // console.dir(app);
   app.launch();
 });
