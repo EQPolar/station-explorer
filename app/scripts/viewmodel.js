@@ -2,52 +2,45 @@
 // center should be a lat/lng object literal
 'use strict';
 
-function Map(center) {
-  this.center = center;
+function Map(stationData) {
+  // s will be shorthand for an array of stationData objects to create map
+  // markers for
+  this.s = stationData;
 
   // array of all the markers we are adding to the map
   this.markers = [];
 
-  // init map function
-  this.initialize = function() {
-    // call Stations.load, when Stations.load is complete it will callback
-    // the rest of the initialize function
-
-    var s = Stations.data;
-
-    var mapOptions = {
-
-      zoom: 6,
-      center: APP.defaultMapCenter
-
-    };
-    var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-
-    for (var i = 0; i < s.length; i++) {
-      var myLatlng = new google.maps.LatLng(s[i].lat, s[i].long);
-
-      var marker = new google.maps.Marker({
-        position: myLatlng,
-        title: s[i].stationName + ' [' + s[i].crsCode + ']'
-      });
-      marker.setMap(map);
-      this.markers.push(marker);
-      google.maps.event.addListener(marker, 'click', (function(iCopy) {
-        return function() {
-          Stations.setLocation(iCopy);
-        }
-      })(i));
-    }
-
+  // initialize the map and add markers
+  var mapOptions = {
+    zoom: 6,
+    center: APP.defaultMapCenter
   };
 
-  this.display = function() {
-    google.maps.event.addDomListener(window, 'load', Map.initialize);
-  };
+  var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
-  this.getMarkers = function() {
-    return this.markers;
+  for (var i = 0; i < this.s.length; i++) {
+    var myLatlng = new google.maps.LatLng(this.s[i].lat, this.s[i].long);
+
+    var marker = new google.maps.Marker({
+      position: myLatlng,
+      title: this.s[i].stationName + ' [' + this.s[i].crsCode + ']'
+    });
+    marker.setMap(map);
+
+    // push all the markers on to an array so we can access them later
+    this.markers.push(marker);
+
+    // TODO: this will need to be moved out of the map object and to the viewmodel
+    google.maps.event.addListener(marker, 'click', (function(iCopy) {
+      return function() {
+        // TODO: this will fix this coupling here
+        Stations.setLocation(iCopy);
+      }
+    })(i));
   }
+
+  // display the map
+  google.maps.event.addDomListener(window, 'load', Map.initialize);
 }
 
 function MainViewModel() {
@@ -93,9 +86,9 @@ MainViewModel.prototype = {
       Stations.setLocation(APP.defaultStation);
 
       // create a new map object, init and display the map
-      var map = new Map(APP.defaultMapCenter);
-      map.initialize();
-      map.display();
+      var map = new Map(Stations.data);
+      // map.initialize();
+      // map.display();
       // console.log(map.markers);
 
       // build a stationlist that is compatabile with jQueryUI autocompelte
