@@ -5,6 +5,9 @@
 function Map(center) {
   this.center = center;
 
+  // array of all the markers we are adding to the map
+  this.markers = [];
+
   // init map function
   this.initialize = function() {
     // call Stations.load, when Stations.load is complete it will callback
@@ -28,6 +31,7 @@ function Map(center) {
         title: s[i].stationName + ' [' + s[i].crsCode + ']'
       });
       marker.setMap(map);
+      this.markers.push(marker);
       google.maps.event.addListener(marker, 'click', (function(iCopy) {
         return function() {
           Stations.setLocation(iCopy);
@@ -40,6 +44,10 @@ function Map(center) {
   this.display = function() {
     google.maps.event.addDomListener(window, 'load', Map.initialize);
   };
+
+  this.getMarkers = function() {
+    return this.markers;
+  }
 }
 
 function MainViewModel() {
@@ -88,6 +96,7 @@ MainViewModel.prototype = {
       var map = new Map(APP.defaultMapCenter);
       map.initialize();
       map.display();
+      // console.log(map.markers);
 
       // build a stationlist that is compatabile with jQueryUI autocompelte
       this._initializeSearch();

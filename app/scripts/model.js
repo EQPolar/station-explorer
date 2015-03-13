@@ -21,6 +21,23 @@ Stations.initialize = function(callback) {
   Stations.currentStation.queryHandler = function(event, ui) {
     Stations.setLocation(ui.item.value);
   };
+
+  Stations.currentStation.mapFilter = function(event, ui) {
+    // for every autocompelte search result being shown
+    for (var i = 0, len = ui.content.length; i < len; i++) {
+      var label = ui.content[i].label;
+      markers = map.getMarkers();
+      // check every map marker on map, it the title is not a match then
+      // set it invisiable
+      for (var j = 0, len = markers.length; i < len; i++) {
+        if (label === markers[i].title) {
+          markers[i].setVisible(true);
+        } else {
+          markers[i].setVisible(false);
+        }
+      }
+    }
+  };
   // callback();
 };
 
