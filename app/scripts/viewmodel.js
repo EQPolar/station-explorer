@@ -116,7 +116,7 @@ function MainViewModel() {
   // };
 
   this.updateWeather = function() {
-    var data = Stations.getCurrentWeather(self.currentStation, function(data) {
+    Stations.getCurrentWeather(self.currentStation, function(data) {
       self.currentStation.weatherLocationName(data.locationName);
       self.currentStation.weatherCurrentTemp(data.temp);
       self.currentStation.weatherDescription(data.description);

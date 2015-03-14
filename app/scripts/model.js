@@ -40,7 +40,8 @@ Stations.getCurrentWeather = function(station, callback) {
     url: "http://api.openweathermap.org/data/2.5/weather",
     data: {
       lat: station.lat,
-      lon: station.long
+      lon: station.long,
+      APPID: APP.openWeatherMapAPIKey
     },
 
     // Whether this is a POST or GET request
@@ -48,6 +49,8 @@ Stations.getCurrentWeather = function(station, callback) {
 
     // The type of data we expect back
     dataType: "json",
+
+    timeout: 7000,
 
     // Code to run if the request succeeds;
     // the response is passed to the function
@@ -64,7 +67,7 @@ Stations.getCurrentWeather = function(station, callback) {
     // Code to run if the request fails; the raw request and
     // status codes are passed to the function
     error: function(xhr, status, errorThrown) {
-      alert("Sorry, there was a problem!");
+      // alert("Sorry, there was a problem!");
       console.log("Error: " + errorThrown);
       console.log("Status: " + status);
       console.dir(xhr);
