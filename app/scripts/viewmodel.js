@@ -76,15 +76,12 @@ function MainViewModel() {
   // TODO: when focus leaves the search box, markers are restored...
   self.currentStation.mapFilter = function(event, ui) {
     // remove all markers
-    for (var k = 0, len = self.map.markers.length; k < len; k++) {
+    for (var k = 0, len1 = self.map.markers.length; k < len1; k++) {
       self.map.markers[k].setVisible(false);
     }
-    console.log(ui.content);
-    // for every autocompelte search result being shown
-    for (var i = 0, len = ui.content.length - 1; i < len; i++) {
 
-      // console.log("label " + i);
-      // console.log(" is " + ui.content[i].label );
+    // for every autocompelte search result being shown
+    for (var i = 0, len2 = ui.content.length; i < len2; i++) {
 
       for (var j = 0, len = self.map.markers.length; j < len; j++) {
 
@@ -108,10 +105,6 @@ function MainViewModel() {
     self.currentStation.query(Stations.data[i].crsCode);
   };
 
-  // self._setLocationbyCRS = function(code) {
-  //
-  // };
-
   this._setLocationByIdx = function(i) {
     // only set new Station if a change is necessary
     if ((typeof self.currentStation === "undefined") || (self.currentStation.idx !== i)) {
@@ -128,12 +121,18 @@ function MainViewModel() {
       self.currentStation.weatherCurrentTemp(data.temp);
       self.currentStation.weatherDescription(data.description);
     });
+  };
 
+  this.updateWikipeida = function() {
+    Stations.getWikipeidaSummary(this.currentStation, function(data) {
+      self.currentStation.wikipediaText(data);
+    });
   };
 }
 
 MainViewModel.prototype = {
   constructor: MainViewModel,
+  self: this,
 
   _initializeSearch: function() {
     for (var i = 0, len = Stations.data.length; i < len; i++) {
@@ -141,33 +140,16 @@ MainViewModel.prototype = {
         label: Stations.data[i].stationName + ' [' + Stations.data[i].crsCode + ']',
         value: Stations.data[i].crsCode
       });
-
-
-      // this.queryList.push({
-      //   label: Stations.data[i].stationName + ' [' + Stations.data[i].crsCode + ']',
-      //   value: Stations.data[i].crsCode
-      // });
     }
-
-    // console.log(this.queryList);
-    // $("#search").autocomplete({
-    //   source: this.queryList
-    // });
   },
 
   setLocation: function(i) {
     // check to see if the location is the CRS code or index
-    if ($.isNumeric(i)) {
-      this._setLocationByIdx(i);
-    } else {
-      this._setLocationbyCRS(i);
-    }
+    $.isNumeric(i) ? this._setLocationByIdx(i) : this._setLocationbyCRS(i);
 
     // any time the station data changes, make new json calls
     this.updateWeather(self.currentStation);
-
-    // TODO: wikipedia function
-    // this.getWikipeidaSummary(self.currentStation);
+    this.updateWikipeida();
   },
 
   _setLocationbyCRS: function(code) {
@@ -184,13 +166,11 @@ MainViewModel.prototype = {
     }
   },
 
-  bindMapMarkers: function() {
-    for (var i = 0; i < this.map.markers.length; i++) {
+  bindMapMarkers: function(prevThis) {
+    for (var i = 0, len = this.map.markers.length; i < len; i++) {
       google.maps.event.addListener(this.map.markers[i], 'click', (function(iCopy) {
         return function() {
-          // Stations.setLocation(iCopy) // this worked before but was bad design
-          console.log(iCopy); // this works
-          this.setLocation(iCopy); // this function cannot be found
+          prevThis.setLocation(iCopy); // does this make Crockford cry?
         }
       })(i));
     }
@@ -202,27 +182,19 @@ MainViewModel.prototype = {
 
   _initialize: function() {
     Stations.load((function() {
-
-      Stations.initialize();
-
       // set the initial location on page load
       // TODO: remember last station using a cookie
       this.setLocation(APP.defaultStation);
 
-      // create a new map object, init and display the map
-      // the callback function gets the id of the clicked
-      // map marker
+      // create a map and display markers with the data passed in
       this.map = new Map(Stations.data);
 
-      this.bindMapMarkers();
-
-      // console.log(this.map.markers);
+      this.bindMapMarkers(this);
 
       // build a stationlist that is compatabile with jQueryUI autocompelte
       this._initializeSearch();
 
       // bind the view to the model
-      // console.log(this.currentStation);
       ko.applyBindings(this.currentStation);
     }).bind(this));
   }

@@ -1,47 +1,12 @@
 'use strict';
+
 // This object will manage all the stations.  It will hold the methods used
 // supply other methods with the location data.
 
 // Create and empty Stations object to hold station methods and data
 var Stations = {};
 
-// TODO: this whole block belong in the viewmodel!
-Stations.initialize = function(callback) {
-  // Stations.currentStation = {};
-  // Stations.currentStation.queryList = [];
-  // Stations.currentStation.query = ko.observable();
-  // Stations.currentStation.crsCode = ko.observable();
-  // Stations.currentStation.stationName = ko.observable();
-  // Stations.currentStation.weatherLocationName = ko.observable();
-  // Stations.currentStation.weatherCurrentTemp = ko.observable();
-  // Stations.currentStation.weatherDescription = ko.observable();
-  // Stations.currentStation.wikipediaText = ko.observable();
 
-
-  // Stations.currentStation.queryHandler = function(event, ui) {
-  //   Stations.setLocation(ui.item.value);
-  // };
-
-  // TODO: move this to viewmodel, just commented out for now
-
-  // Stations.currentStation.mapFilter = function(event, ui) {
-  //   // for every autocompelte search result being shown
-  //   for (var i = 0, len = ui.content.length; i < len; i++) {
-  //     var label = ui.content[i].label;
-  //     markers = map.getMarkers();
-  //     // check every map marker on map, it the title is not a match then
-  //     // set it invisiable
-  //     for (var j = 0, len = markers.length; i < len; i++) {
-  //       if (label === markers[i].title) {
-  //         markers[i].setVisible(true);
-  //       } else {
-  //         markers[i].setVisible(false);
-  //       }
-  //     }
-  //   }
-  // };
-  // // callback();
-};
 
 // Load the stations from the JSON file if not loaded already
 Stations.load = function(callback) {
@@ -93,7 +58,7 @@ Stations.getCurrentWeather = function(station, callback) {
         description: json.weather[0].description
       };
       callback(weatherData);
-      
+
     },
 
     // Code to run if the request fails; the raw request and
@@ -110,6 +75,7 @@ Stations.getCurrentWeather = function(station, callback) {
 
     }
   });
+}
   // get google image :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:=:=:
 
   // get Wikipedia article info :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:
@@ -117,70 +83,70 @@ Stations.getCurrentWeather = function(station, callback) {
   // TODO: this needs it's own function
   // TODO: have to implement a way to more reliabile pull the articles.
   // Probably need to map all article ids and get results that way.
+Stations.getWikipeidaSummary = function(station, callback) {
+  // console.log(station);
+  $.ajax({
 
-  // console.log(decodeURI(Stations.currentStation.stationName().capitalizeOnlyFirstLetter()))
-  // $.ajax({
-  //
-  //   // The URL for the request
-  //   url: "http://en.wikipedia.org/w/api.php",
-  //
-  //   // The data to send (will be converted to a query string)
-  //   data: {
-  //     action: 'query',
-  //     format: 'json',
-  //     // wikipedia article
-  //     titles: decodeURI(Stations.currentStation.stationName().capitalizeOnlyFirstLetter()),
-  //     prop: 'extracts',
-  //     exintro: null,
-  //     continue: null,
-  //     redirects: null
-  //   },
-  //
-  //   // Whether this is a POST or GET request
-  //   type: "GET",
-  //
-  //   // The type of data we expect back
-  //   dataType: "jsonp",
-  //
-  //   timeout: 10000,
-  //
-  //   // Code to run if the request succeeds;
-  //   // the response is passed to the function
-  //   success: function(json) {
-  //     var i, extract;
-  //     var keys = [];
-  //     // console.log(json);
-  //
-  //     for (var i in json.query.pages) {
-  //       keys.push(i);
-  //     }
-  //     // console.log(keys);
-  //
-  //     // if keys contains more than one item this means wikiepdia sent back
-  //     // more than one article when we are expecting 1, log to console for now
-  //     if (keys.length > 1) {
-  //       console.log("More than one article key.");
-  //     }
-  //
-  //     (keys[0] != -1) ?
-  //     Stations.currentStation.wikipediaText(json.query.pages[keys[0]].extract):
-  //       Stations.currentStation.wikipediaText(APP.ajaxError);
-  //   },
-  //
-  //   // Code to run if the request fails; the raw request and
-  //   // status codes are passed to the function
-  //   error: function(xhr, status, errorThrown) {
-  //
-  //     console.log("Error: " + errorThrown);
-  //     console.log("Status: " + status);
-  //     console.dir(xhr);
-  //   },
-  //
-  //   // Code to run regardless of success or failure
-  //   complete: function(xhr, status) {
-  //     // alert("The request is complete!");
-  //   }
-  // });
+    // The URL for the request
+    url: "http://en.wikipedia.org/w/api.php",
+
+    // The data to send (will be converted to a query string)
+    data: {
+      action: 'query',
+      format: 'json',
+      // wikipedia article
+      titles: decodeURI(station.stationName().capitalizeOnlyFirstLetter()),
+      prop: 'extracts',
+      exintro: null,
+      continue: null,
+      redirects: null
+    },
+
+    // Whether this is a POST or GET request
+    type: "GET",
+
+    // The type of data we expect back
+    dataType: "jsonp",
+
+    timeout: 10000,
+
+    // Code to run if the request succeeds;
+    // the response is passed to the function
+    success: function(json) {
+      var i, extract;
+      var keys = [];
+      // console.log(json);
+
+      for (var i in json.query.pages) {
+        keys.push(i);
+      }
+      // console.log(keys);
+
+      // if keys contains more than one item this means wikiepdia sent back
+      // more than one article when we are expecting 1, log to console for now
+      if (keys.length > 1) {
+        console.log("More than one article key.");
+      }
+
+      // if the first key in not -1, we callback with the summary.  Otherwise
+      // callback with the error message.
+      (keys[0] != -1) ? callback(json.query.pages[keys[0]].extract) : callback(APP.ajaxError);
+    },
+
+    // Code to run if the request fails; the raw request and
+    // status codes are passed to the function
+    error: function(xhr, status, errorThrown) {
+
+      console.log("Error: " + errorThrown);
+      console.log("Status: " + status);
+      console.dir(xhr);
+    },
+
+    // Code to run regardless of success or failure
+    complete: function(xhr, status) {
+      // alert("The request is complete!");
+    }
+  });
 };
 
 // // Takes the idx of
