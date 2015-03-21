@@ -1,17 +1,34 @@
-;'use strict';
+'use strict';
 
-function StationModel () {
-  this.data = [];
+function StationModel() {
+  // will hold our model data
+  this.data = {};
 }
 
 StationModel.prototype.load = function(callback) {
-  console.log ('loading data...');
+  // load the list of train statins from local JSON file
+  $.getJSON(APP.urlStationJSON)
+    .done((function(json) {
+      this.data = json;
+      
+      if (callback && typeof(callback) === 'function') {
+        callback();
+      }
+    }).bind(this))
+    .fail(function(jqxhr, textStatus, error) {
+      var err = textStatus + ', ' + error;
+      if (APP.debug) {
+        console.log("Request Failed: " + err);
+      }
 
-  if (callback && typeof(callback) === 'function') {
-    callback();
-  }
+      // notification window
+      var notify = new NotificationView();
+      notify.fatalError();
+    });
+
+
+
 };
-
 /*
 
 

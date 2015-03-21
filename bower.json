@@ -2,9 +2,11 @@
   "name": "station-explorer",
   "private": true,
   "dependencies": {
-    "bootstrap-sass-official": "~3.3.1",
     "modernizr": "~2.8.1",
     "knockout": "~3.3.0",
-    "knockout-jqueryui": "~2.2.2"
+    "knockout-jqueryui": "~2.2.2",
+    "noty": "~2.3.4",
+    "animate.css": "~3.2.5",
+    "normalize.css": "~3.0.2"
   }
 }

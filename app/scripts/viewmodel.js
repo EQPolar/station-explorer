@@ -16,13 +16,13 @@ function MainViewModel() {
 
   // view object to hold all knockout objects
   self.view = {
-    query : ko.observable(),
-    crsCode : ko.observable(),
-    stationName : ko.observable(),
-    weatherLocationName : ko.observable(),
-    weatherCurrentTemp : ko.observable(),
-    weatherDescription : ko.observable(),
-    wikipediaText : ko.observable(),
+    query: ko.observable(),
+    crsCode: ko.observable(),
+    stationName: ko.observable(),
+    weatherLocationName: ko.observable(),
+    weatherCurrentTemp: ko.observable(),
+    weatherDescription: ko.observable(),
+    wikipediaText: ko.observable(),
 
     // an array to hold the list of stations, does not need to be obervable
     // because will not change
@@ -30,34 +30,88 @@ function MainViewModel() {
 
     // an array to hold objects formatted in 'StationName [CRSCode]' for
     // the autocomplete search.
-    queryList : [],
+    queryList: [],
 
     // functions called from knockout, they point to functions on the prototype
     // chain
-    queryHandler : function() {},
-    mapFilter : function() {}
+    queryHandler: function() {},
+    mapFilter: function() {}
   };
 };
 
-MainViewModel.prototype.launch = function () {
+MainViewModel.prototype.bindMapMarkers = function(map, markers) {
+  // we need the current this scope in the closure
+  var that = this;
+
+  for (var i = 0, len = markers.length; i < len; i++) {
+    google.maps.event.addListener(markers[i], 'click', (function(iCopy) {
+      return function() {
+        // set the current location for all item on the view
+        that.setLocation(iCopy);
+
+        // pan and zoom the map to the clicked location
+        that.mapView.panAndZoomMap(iCopy);
+
+        // display an info window with a street view location
+        that.mapView.displayInfoWindow(iCopy);
+
+        // set all markers to visiable - markers might be filtered due to search
+        that.mapView.setAllMarkersVisiable(iCopy);
+      }
+    })(i));
+  }
+};
+
+MainViewModel.prototype.setLocation = function(i) {
+  // check to see if the location is the CRS code or index
+  $.isNumeric(i) ? this._setLocationByIdx(i) : this._setLocationbyCRS(i);
+
+  // any time the station data changes, make new json calls
+  // this.updateWeather(self.currentStation);
+  // this.updateWikipeida();
+};
+
+MainViewModel.prototype._setLocationByIdx = function(i) {
+  // only set new Station if a change is necessary
+  if ((typeof self.stationName === "undefined") || (self.idx !== i)) {
+    this._updateModel(i);
+  }
+};
+
+MainViewModel.prototype._updateModel = function(i) {
+  this.view.idx = this.stationModel.data[i].idx;
+  this.view.lat = this.stationModel.data[i].lat;
+  this.view.long = this.stationModel.data[i].long;
+  this.view.crsCode(this.stationModel.data[i].crsCode);
+  this.view.stationName(this.stationModel.data[i].stationName);
+
+  // This is needed if the station is updated by clicking the map so the
+  // search box matches the currently selected station
+  this.view.query(this.stationModel.data[i].crsCode);
+};
+
+MainViewModel.prototype.launch = function() {
   this._initialize();
 };
 
 MainViewModel.prototype._initialize = function() {
   // get a Map View
-  var mapView = new MapView();
+  this.mapView = new MapView();
 
   // get a model that will station data
-  var stationModel = new StationModel();
+  this.stationModel = new StationModel();
 
   // have stationModel load the data and then callback the rest of our init
-  stationModel.load((function() {
+  this.stationModel.load((function() {
 
     // display markers
-    // this.setMapMarkers(stationModel.data);
+    this.mapView.setMapMarkers(this.stationModel.data);
+
+    // display map
+    this.mapView.displayMap();
 
     // bind marker click events
-    // this.bindMapMarkers();
+    this.bindMapMarkers(this.mapView.map, this.mapView.markers);
 
     // init search autocomplete
     // this._initalizeSearch();
@@ -67,6 +121,8 @@ MainViewModel.prototype._initialize = function() {
     ko.applyBindings(this.view);
   }).bind(this));
 };
+
+
 
 
 
@@ -138,29 +194,6 @@ MainViewModel.prototype._initialize = function() {
     console.log(self.map.getZoom());
   };
 
-  // Takes the idx of
-  this._updateModel = function(i) {
-    self.idx = Stations.data[i].idx;
-    self.lat = Stations.data[i].lat;
-    self.long = Stations.data[i].long;
-    self.crsCode(Stations.data[i].crsCode);
-    self.stationName(Stations.data[i].stationName);
-
-    // This is needed if the station is updated by clicking the map so the
-    // search box matches the currently selected station
-    self.query(Stations.data[i].crsCode);
-  };
-
-  this._setLocationByIdx = function(i) {
-    // only set new Station if a change is necessary
-    if ((typeof self.stationName === "undefined") || (self.idx !== i)) {
-      self._updateModel(i);
-    }
-  };
-
-  // self.setLocation = function(i) {
-  // };
-
   this.updateWeather = function() {
     Stations.getCurrentWeather(self, function(data) {
       self.weatherLocationName(data.locationName);
@@ -212,51 +245,7 @@ MainViewModel.prototype = {
   },
 
   bindMapMarkers: function(prevThis) {
-    console.log(this);
-    // make the info window
-    var infowindow;
-    console.log(this)
-    // TODO: maybe map is on the correct scope, don't need to pass it in?
-    for (var i = 0, len = map.markers.length; i < len; i++) {
-
-      google.maps.event.addListener(self.map.markers[i], 'click', (function(iCopy, map, query) {
-        return function() {
-          // add lat & long to StreetView URL
-          var imgURL = APP.GoogleStreetViewURL.replace('%lat%', self.map.s[iCopy].lat);
-          imgURL = imgURL.replace('%long%', self.map.s[iCopy].long);
-
-          // add station name
-          var infoWindowContent = APP.InfoWindowContent.replace('%title%', self.map.s[iCopy].stationName);
-
-          // add imgURL to the infoWindow content
-          infoWindowContent = infoWindowContent.replace('%imgURL%', imgURL);
-
-          infowindow = new google.maps.InfoWindow({
-            content: infoWindowContent
-          });
-          prevThis.setLocation(iCopy); // does this make Crockford cry?
-          prevThis.query(' ');
-          // console.log(map.markers[iCopy]);
-          infowindow.open(self.map, self.map.markers[iCopy]);
-
-          // don't zoom out if the user has already zoomed in
-          // if (self.map.getZoom() < 10) {
-          //   self.map.setZoom(10);
-          // }
-          // map.panTo(map.markers[iCopy].getPosition());
-          console.log(map);
-
-          // after setting to a station, make all the markers visiable again
-          for (var i = 0, len = map.markers.length; i < len; i++) {
-            map.markers[i].setVisible(true);
-          }
-
-          // console.log(query);
-
-        }
-      })(i, self.map, this.query));
-    }
-  },
+    ,
 
   launch: function() {
     this._initialize();
