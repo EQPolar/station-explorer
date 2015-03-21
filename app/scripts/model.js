@@ -1,4 +1,21 @@
-'use strict';
+;'use strict';
+
+function StationModel () {
+  this.data = [];
+}
+
+StationModel.prototype.load = function(callback) {
+  console.log ('loading data...');
+
+  if (callback && typeof(callback) === 'function') {
+    callback();
+  }
+};
+
+/*
+
+
+
 
 // This object will manage all the stations.  It will hold the methods used
 // supply other methods with the location data.
@@ -199,3 +216,4 @@ Stations.getWikipeidaSummary = function(station, callback) {
 
 // TODO: when a station is clicked on, information has to be cleared and replaced
 // with a ajax waiting request indication.
+*/
