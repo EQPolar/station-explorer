@@ -95,25 +95,45 @@ MapView.prototype.setAllMarkersVisiable = function(i) {
 };
 
 function NotificationView() {
-  this.fatalError = function(msg) {
-    var text = (msg || APP.defaultFatalMessage);
+  // no constructor values
+}
 
-    var n = noty({
-      text: text,
-      type: 'error',
-      closeWith: ['click'],
-      animation: {
-        open: 'animated slideInDown', // Animate.css class names
-        close: 'animated slideOutUp', // Animate.css class names
-        easing: 'swing', // unavailable - no need
-        speed: 500 // unavailable - no need
-      },
-      // after notification is closed try to reload the page and flush cache
-      callback: {
-        afterClose: function() {
-          location.reload(true);
-        }
+NotificationView.prototype.fatalError = function(msg) {
+  var text = (msg || APP.defaultFatalMessage);
+
+  var n = noty({
+    text: text,
+    type: 'error',
+    closeWith: ['click'],
+    animation: {
+      open: 'animated slideInDown', // Animate.css class names
+      close: 'animated slideOutUp', // Animate.css class names
+      easing: 'swing', // unavailable - no need
+      speed: 500 // unavailable - no need
+    },
+    // after notification is closed try to reload the page and flush cache
+    callback: {
+      afterClose: function() {
+        location.reload(true);
       }
-    });
-  };
+    }
+  });
+};
+
+NotificationView.prototype.warningError = function(msg) {
+  var text = (msg || APP.defaultWarningMessage);
+
+  var n = noty({
+    layout: 'topRight',
+    text: text,
+    type: 'warning',
+    closeWith: ['click'],
+    timeout: 10000,
+    animation: {
+      open: 'animated bounceInRight', // Animate.css class names
+      close: 'animated fadeOut', // Animate.css class names
+      easing: 'swing', // unavailable - no need
+      speed: 500 // unavailable - no need
+    }
+  });
 }

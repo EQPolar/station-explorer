@@ -10,7 +10,7 @@ StationModel.prototype.load = function(callback) {
   $.getJSON(APP.urlStationJSON)
     .done((function(json) {
       this.data = json;
-      
+
       if (callback && typeof(callback) === 'function') {
         callback();
       }
@@ -25,103 +25,49 @@ StationModel.prototype.load = function(callback) {
       var notify = new NotificationView();
       notify.fatalError();
     });
-
-
-
-};
-/*
-
-
-
-
-// This object will manage all the stations.  It will hold the methods used
-// supply other methods with the location data.
-
-// Create and empty Stations object to hold station methods and data
-var Stations = {};
-
-
-
-// Load the stations from the JSON file if not loaded already
-Stations.load = function(callback) {
-  if (!Stations.data) {
-    $.getJSON('../stations.json')
-      .done(function(json) {
-        Stations.data = json;
-
-        // for now initilize currentStation to Huddersfield
-        // Stations.setLocation(APP.defaultStation);
-        // console.log(Stations.data.length + ' stations loaded.');
-
-        if (callback && typeof(callback) === 'function') {
-          callback.apply(this);
-        }
-      })
-      .fail(function(jqxhr, textStatus, error) {
-        var err = textStatus + ', ' + error;
-        console.log("Request Failed: " + err);
-        //TODO: better fail and maybe log to firebase?
-      });
-  }
-
 };
 
-Stations.getCurrentWeather = function(station, callback) {
-  // get current weather :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:=:
+StationModel.prototype.getWeather = function(i, callback) {
+  var that = this;
+
   var weatherData = {};
 
   $.ajax({
     url: "http://api.openweathermap.org/data/2.5/weather",
     data: {
-      lat: station.lat,
-      lon: station.long,
+      lat: this.data[i].lat,
+      lon: this.data[i].long,
       APPID: APP.openWeatherMapAPIKey
     },
 
-    // Whether this is a POST or GET request
-    type: "GET",
+    timeout: APP.defaultAjaxTimeOut,
 
-    // The type of data we expect back
-    dataType: "json",
-
-    timeout: 7000,
-
-    // Code to run if the request succeeds;
-    // the response is passed to the function
     success: function(json) {
       weatherData = {
         locationName: json.name,
         temp: json.main.temp - 273.5,
         description: json.weather[0].description
       };
+
       callback(weatherData);
-
     },
 
-    // Code to run if the request fails; the raw request and
-    // status codes are passed to the function
     error: function(xhr, status, errorThrown) {
-      // alert("Sorry, there was a problem!");
-      console.log("Error: " + errorThrown);
-      console.log("Status: " + status);
-      console.dir(xhr);
-    },
+      if (APP.debug) {
+        console.log("Error: " + errorThrown);
+        console.log("Status: " + status);
+        console.dir(xhr);
+      }
 
-    // Code to run regardless of success or failure
-    complete: function(xhr, status) {
-
+      var notify = new NotificationView();
+      notify.warningError('Could not get weather for ' + that.data[i].stationName);
     }
   });
-}
-  // get google image :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:=:=:
+};
 
-  // get Wikipedia article info :=:=:=:=:=:=:==:=:=:=:=:=:==:=:=:=:=:=:==:=:=:
-
-  // TODO: this needs it's own function
-  // TODO: have to implement a way to more reliabile pull the articles.
-  // Probably need to map all article ids and get results that way.
-Stations.getWikipeidaSummary = function(station, callback) {
-  // console.log(station);
+StationModel.prototype.getWikipedia = function(i, callback) {
+  var that = this;
+  console.log(i);
   $.ajax({
 
     // The URL for the request
@@ -132,7 +78,7 @@ Stations.getWikipeidaSummary = function(station, callback) {
       action: 'query',
       format: 'json',
       // wikipedia article
-      titles: decodeURI(station.stationName().capitalizeOnlyFirstLetter()),
+      titles: decodeURI(this.data[i].stationName.capitalizeOnlyFirstLetter()),
       prop: 'extracts',
       exintro: null,
       continue: null,
@@ -145,17 +91,17 @@ Stations.getWikipeidaSummary = function(station, callback) {
     // The type of data we expect back
     dataType: "jsonp",
 
-    timeout: 10000,
+    timeout: 5000,
 
     // Code to run if the request succeeds;
     // the response is passed to the function
     success: function(json) {
-      var i, extract;
+      var j, extract;
       var keys = [];
       // console.log(json);
 
-      for (var i in json.query.pages) {
-        keys.push(i);
+      for (j in json.query.pages) {
+        keys.push(j);
       }
       // console.log(keys);
 
@@ -167,16 +113,30 @@ Stations.getWikipeidaSummary = function(station, callback) {
 
       // if the first key in not -1, we callback with the summary.  Otherwise
       // callback with the error message.
-      (keys[0] != -1) ? callback(json.query.pages[keys[0]].extract) : callback(APP.ajaxError);
+      if (keys[0] != -1) {
+        callback(json.query.pages[keys[0]].extract);
+      } else {
+        var notify = new NotificationView();
+        notify.warningError('Could not get Wikipedia summary for ' +
+          that.data[i].stationName);
+
+        // TODO: sending blank callback, have to trap that
+        callback();
+      }
     },
 
     // Code to run if the request fails; the raw request and
     // status codes are passed to the function
     error: function(xhr, status, errorThrown) {
+      if (APP.debug) {
+        console.log("Error: " + errorThrown);
+        console.log("Status: " + status);
+        console.dir(xhr);
+      }
 
-      console.log("Error: " + errorThrown);
-      console.log("Status: " + status);
-      console.dir(xhr);
+      var notify = new NotificationView();
+      notify.warningError('Could not get Wikipedia summary for ' +
+        that.data[i].stationName);
     },
 
     // Code to run regardless of success or failure
@@ -186,51 +146,5 @@ Stations.getWikipeidaSummary = function(station, callback) {
   });
 };
 
-// // Takes the idx of
-// Stations._updateModel = function(i) {
-//   Stations.currentStation.idx = Stations.data[i].idx;
-//   Stations.currentStation.lat = Stations.data[i].lat;
-//   Stations.currentStation.long = Stations.data[i].long;
-//   Stations.currentStation.crsCode(Stations.data[i].crsCode);
-//   Stations.currentStation.stationName(Stations.data[i].stationName);
-//
-//   // This is needed if the station is updated by clicking the map so the
-//   // search box matches the currently selected station
-//   Stations.currentStation.query(Stations.data[i].crsCode);
-// };
-//
-// Stations._setLocationbyCRS = function(code) {
-//   // only search if we have a valid CRS code, which is 3 chars
-//   if (code.length === 3) {
-//
-//     // search for the code in our data
-//     for (var i = 0, len = Stations.data.length; i < len; i++) {
-//       if (code === Stations.data[i].crsCode) {
-//         Stations._updateModel(i);
-//         break;
-//       }
-//     }
-//   }
-// };
-//
-// Stations._setLocationByIdx = function(i) {
-//   // only set new Station if a change is necessary
-//   if ((typeof Stations.currentStation === "undefined") || (Stations.currentStation.idx !== i)) {
-//     Stations._updateModel(i);
-//   }
-// };
-//
-// Stations.setLocation = function(i) {
-//   // check to see if the location is the CRS code or index
-//   if ($.isNumeric(i)) {
-//     Stations._setLocationByIdx(i);
-//   } else {
-//     Stations._setLocationbyCRS(i);
-//   }
-//     // any time the station data changes, make new json calls
-//     Stations.getCurrentStationData();
-// };
-
 // TODO: when a station is clicked on, information has to be cleared and replaced
 // with a ajax waiting request indication.
-*/

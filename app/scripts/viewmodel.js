@@ -62,13 +62,30 @@ MainViewModel.prototype.bindMapMarkers = function(map, markers) {
   }
 };
 
+MainViewModel.prototype.updateWeather = function(i) {
+  this.stationModel.getWeather(i, (function(data) {
+    this.view.weatherLocationName(data.locationName);
+    // TODO: investigate using custom knockout handler to round?
+    this.view.weatherCurrentTemp(Math.round(data.temp));
+    this.view.weatherDescription(data.description);
+  }).bind(this));
+};
+
+MainViewModel.prototype.updateWikipeida = function(i) {
+  this.stationModel.getWikipedia(i, (function(data) {
+    this.view.wikipediaText(data);
+  }).bind(this));
+};
+
 MainViewModel.prototype.setLocation = function(i) {
+  // TODO: do I need to set location by CRS code?
   // check to see if the location is the CRS code or index
   $.isNumeric(i) ? this._setLocationByIdx(i) : this._setLocationbyCRS(i);
 
   // any time the station data changes, make new json calls
-  // this.updateWeather(self.currentStation);
-  // this.updateWikipeida();
+  // TODO: work here next!
+  this.updateWeather(i);
+  this.updateWikipeida(i);
 };
 
 MainViewModel.prototype._setLocationByIdx = function(i) {

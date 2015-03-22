@@ -18,6 +18,8 @@ APP.defaultMapCenter = {
   "lng": -0.1275
 };
 
+APP.defaultAjaxTimeOut = 5000;
+
 // Make the default station Huddersfield
 APP.defaultStation = 'LED';
 
@@ -25,7 +27,8 @@ APP.defaultStation = 'LED';
 APP.openWeatherMapAPIKey = "6557cfc9892774d312f5367ff790360b";
 
 APP.ajaxError = 'could not load data';
-APP.defaultFatalMessage = "A big problem happened!";
+APP.defaultFatalMessage = "A big problem!";
+APP.defaultWarningMessage = 'A minor problem occured.';
 
 APP.InfoWindowContent = '<h5>%title%</h5> <p><img src="%imgURL%" alt="Street Map Image" /></p>';
 APP.GoogleStreetViewURL = "http://maps.googleapis.com/maps/api/streetview?size=300x200&location=%lat%,%long%";
