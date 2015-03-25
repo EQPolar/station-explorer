@@ -12,10 +12,10 @@
 // :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:
 
 function MainViewModel() {
-  var self = this;
+  var that = this;
 
   // view object to hold all knockout objects
-  self.view = {
+  this.view = {
     query: ko.observable(),
     crsCode: ko.observable(),
     stationName: ko.observable(),
@@ -32,11 +32,75 @@ function MainViewModel() {
     // the autocomplete search.
     queryList: [],
 
-    // functions called from knockout, they point to functions on the prototype
-    // chain
-    queryHandler: function() {},
-    mapFilter: function() {}
+    // functions knockout needs to know about, point to functions delcared
+    // on the prototype chain
+    queryHandler: function(event, ui) {
+      that._queryHandler(event, ui);
+    },
+    mapFilter: function(event, ui) {
+      that._mapFilter(event, ui);
+    },
+    absorbEnter: function(data, event) {
+      // remove for now
+      // that._absorbEnter(data, event);
+
+    },
+    // empty because submits are ignored
+    submit: function() {}
   };
+};
+
+// if a click event on an autocomplete search is recived, search through the
+// list of markers and trigger a click event
+MainViewModel.prototype._queryHandler = function(e, ui) {
+  // TODO: should this be in the MapView?
+  for (var i = 0, len = this.mapView.markers.length; i < len; i++) {
+    if (ui.item.value === this.mapView.markers[i].title) {
+      google.maps.event.trigger(this.mapView.markers[i], 'click');
+      break;
+    }
+  }
+};
+
+// when autocomplete results are being displayed, only display map markers
+// that match the results. Make the map fit the displayed markers
+MainViewModel.prototype._mapFilter = function(e, ui) {
+  var i, j,
+    len,
+    len2,
+    lats = [],
+    lngs = [];
+
+  // hide all map markers
+  this.mapView.hideAllMapMarkers();
+
+  // set the markers assosicated with autocomplete results to visiable
+  // here the MainViewModel instance is going to look into the mapView instances
+  // data, this is for perf reasons
+  for (i = 0, len = ui.content.length; i < len; i++) {
+    for (j = 0, len2 = this.mapView.markers.length; j < len2; j++) {
+      if (ui.content[i].label === this.mapView.markers[j].getTitle()) {
+        // set the map marker to visiable
+        this.mapView.setMarkerVisiable(this.mapView.markers[j].idx);
+
+        // create an array of all the lats and longs found
+        lats.push(this.mapView.markers[j].getPosition().lat());
+        lngs.push(this.mapView.markers[j].getPosition().lng());
+      }
+    }
+  }
+
+  // set map bounds passed on the lat and lng values found
+  this.mapView.setMapBounds(lats, lngs);
+
+  // find the bounds of the search results
+
+
+};
+
+// filter out enter key presses so that our app won't reload
+MainViewModel.prototype._absorbEnter = function(data, event) {
+  return event.keyCode;
 };
 
 MainViewModel.prototype.bindMapMarkers = function(map, markers) {
@@ -54,6 +118,9 @@ MainViewModel.prototype.bindMapMarkers = function(map, markers) {
 
         // display an info window with a street view location
         that.mapView.displayInfoWindow(iCopy);
+
+        // animate marker
+        that.mapView.animateMarker(iCopy);
 
         // set all markers to visiable - markers might be filtered due to search
         that.mapView.setAllMarkersVisiable(iCopy);
@@ -107,6 +174,15 @@ MainViewModel.prototype._updateModel = function(i) {
   this.view.query(this.stationModel.data[i].crsCode);
 };
 
+MainViewModel.prototype._initalizeSearch = function() {
+
+  var d = this.stationModel.data;
+  for (var i = 0, len = d.length; i < len; i++) {
+    this.view.queryList.push(d[i].stationName + ' [' + d[i].crsCode + ']');
+  }
+
+};
+
 MainViewModel.prototype.launch = function() {
   this._initialize();
 };
@@ -131,7 +207,7 @@ MainViewModel.prototype._initialize = function() {
     this.bindMapMarkers(this.mapView.map, this.mapView.markers);
 
     // init search autocomplete
-    // this._initalizeSearch();
+    this._initalizeSearch();
 
     // bind the view to this viewmodel
     // console.log(self.view);
@@ -211,21 +287,6 @@ MainViewModel.prototype._initialize = function() {
     console.log(self.map.getZoom());
   };
 
-  this.updateWeather = function() {
-    Stations.getCurrentWeather(self, function(data) {
-      self.weatherLocationName(data.locationName);
-      self.weatherCurrentTemp(data.temp);
-      self.weatherDescription(data.description);
-    });
-  };
-
-  this.updateWikipeida = function() {
-    Stations.getWikipeidaSummary(this, function(data) {
-      self.wikipediaText(data);
-    });
-  };
-}
-
 MainViewModel.prototype = {
   constructor: MainViewModel,
   self: this,
@@ -236,81 +297,7 @@ MainViewModel.prototype = {
     }
   },
 
-  setLocation: function(i) {
-    // check to see if the location is the CRS code or index
-    $.isNumeric(i) ? this._setLocationByIdx(i) : this._setLocationbyCRS(i);
-
-    // this.autocomplete('');
-
-    // any time the station data changes, make new json calls
-    this.updateWeather();
-    this.updateWikipeida();
-  },
-
-  _setLocationbyCRS: function(code) {
-    // only search if we have a valid CRS code, which is 3 chars
-    if (code.length === 3) {
-
-      // search for the code in our data
-      for (var i = 0, len = Stations.data.length; i < len; i++) {
-        if (code === Stations.data[i].crsCode) {
-          this._updateModel(i);
-          break;
-        }
-      }
-    }
-  },
-
-  bindMapMarkers: function(prevThis) {
-    ,
-
-  launch: function() {
-    this._initialize();
-  },
-
-  _initialize: function() {
-    // get a Map View
-    var mapView = new MapView();
-
-    // get a model that will station data
-    var stationModel = new StationModel();
-
-    // have stationModel load the data and then callback the rest of our init
-    stationModel.load(function() {
-
-      // display markers
-      // this.setMapMarkers(stationModel.data);
-
-      // bind marker click events
-      // this.bindMapMarkers();
-
-      // init search autocomplete
-      // this._initalizeSearch();
-
-      // bind the view to this viewmodel
-      console.log(self.view);
-      ko.applyBindings(self.view);
-    });
 
 
-    // Stations.load((function() {
-    //   // set the initial location on page load
-    //   // TODO: remember last station using a cookie
-    //   this.setLocation(APP.defaultStation);
-    //
-    //   // create a map and display markers with the data passed in
-    //   var m = Map(Stations.data);
-    //   var map = m.map;
-    //   var markers = m.markers;
-    //
-    //   this.bindMapMarkers(this);
-    //
-    //   // build a stationlist that is compatabile with jQueryUI autocompelte
-    //   this._initializeSearch();
-    //
-    //   // bind the view to the model
-    //   ko.applyBindings(this);
-    // }).bind(this));
-  }
-};
+
 */

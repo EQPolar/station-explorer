@@ -12,18 +12,23 @@ html {
   margin: 0;
   padding: 0;
   height: 100%;
+  font-family: 'Lato', sans-serif;
+}
+
+p {
+  font-family: 'Noto Serif', serif;
 }
 /* Google Map Canvas */
 /* debug values */
 #map-canvas {
-  min-height: 600px;
+
   height: 100%;
 }
 /* TODO: temporary */
 #info {
   position: absolute;
   bottom: 35px;
-  left: 10px;
+  left: 15px;
   height: 250px;
   width: 325px;
   z-index: 99;
@@ -35,8 +40,8 @@ html {
 }
 #search {
   position: absolute;
-  top: 20px;
-  left: 10px;
+  top: 5px;
+  left: 15px;
   z-index: 100;
   width: 300px;
   margin: 0 0 0 0;

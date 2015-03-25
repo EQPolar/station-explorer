@@ -67,7 +67,7 @@ StationModel.prototype.getWeather = function(i, callback) {
 
 StationModel.prototype.getWikipedia = function(i, callback) {
   var that = this;
-  console.log(i);
+  
   $.ajax({
 
     // The URL for the request

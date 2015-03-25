@@ -19,13 +19,77 @@ function MapView() {
     disableDefaultUI: true,
     zoomControl: true,
     zoomControlOptions: {
-      style: google.maps.ZoomControlStyle.SMALL,
-      position: google.maps.ControlPosition.RIGHT_TOP
+      style: google.maps.ZoomControlStyle.LARGE,
+      position: google.maps.ControlPosition.RIGHT_BOTTOM
     }
   };
 
   this.map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 }
+
+MapView.prototype.setMapBounds = function(lats, lngs) {
+  var swBound, // SouthWest lat/lng bound
+    neBound, // NorthEast lat/lng bound
+    bound,
+    extendPoint1,
+    extendPoint2;
+
+  bound = new google.maps.LatLngBounds();
+
+  // SouthWest map bound is the MIN lattitude and long found in the search
+  swBound = new google.maps.LatLng(Math.min.apply(Math, lats),
+    Math.min.apply(Math, lngs));
+
+  // NorthEast map bound is the MAX lattitude and long found in the search
+  neBound = new google.maps.LatLng(Math.max.apply(Math, lats),
+    Math.max.apply(Math, lngs));
+
+  // create a lat/lng bound object
+  bounds = new google.maps.LatLngBounds(swBound, neBound);
+
+  /* if there is only one marker in the bounds, the zoom level will be too zoomed
+   * in. Extend the view so that we don't zoom in to far. Of course, now I see that
+   * .extend() could have been used to make finding the bounds above easier.
+   * http://stackoverflow.com/questions/3334729/google-maps-v3-fitbounds-zoom-too-close-for-single-marker/5345708#5345708
+  */
+  if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
+    extendPoint1 = new google.maps.LatLng(bounds.getNorthEast().lat() + 0.01,
+      bounds.getNorthEast().lng() + 0.01);
+    extendPoint2 = new google.maps.LatLng(bounds.getNorthEast().lat() - 0.01,
+      bounds.getNorthEast().lng() - 0.01);
+    bounds.extend(extendPoint1);
+    bounds.extend(extendPoint2);
+  }
+
+  this.map.fitBounds(bounds);
+};
+
+MapView.prototype.hideAllMapMarkers = function() {
+  this.someMarkersHidden = true;
+
+  for (var i = 0, len = this.markers.length; i < len; i++) {
+    this.markers[i].setVisible(false);
+  }
+};
+
+MapView.prototype.setMarkerVisiable = function(i) {
+  if ($.isNumeric(i)) {
+    this.markers[i].setVisible(true);
+  } else {
+    // TODO: figure out best way to serch
+    console.log(i);
+  }
+};
+
+MapView.prototype.animateMarker = function(i) {
+  var that = this;
+
+  this.markers[i].setAnimation(google.maps.Animation.BOUNCE);
+
+  setTimeout(function() {
+    that.markers[i].setAnimation(null)
+  }, APP.markerAnimateTimeout);
+};
 
 MapView.prototype.setMapMarkers = function(data) {
   for (var i = 0; i < data.length; i++) {
@@ -34,7 +98,7 @@ MapView.prototype.setMapMarkers = function(data) {
     var marker = new google.maps.Marker({
       position: myLatlng,
       title: data[i].stationName + ' [' + data[i].crsCode + ']',
-      // save the index and name so we can more easily manipulate this marker later
+      // save the index and name so we can more easily manipulate each marker later
       idx: data[i].idx,
       stationName: data[i].stationName
     });
@@ -51,7 +115,7 @@ MapView.prototype.displayMap = function() {
 };
 
 MapView.prototype.panAndZoomMap = function(i) {
-  // don't zoon if user has zoomed in greater then 10 already
+  // don't zoom if user has zoomed in greater then 10 already
   if (this.map.getZoom() < 10) {
     this.map.setZoom(10);
   }
