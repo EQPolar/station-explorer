@@ -123,12 +123,19 @@ MapView.prototype.panAndZoomMap = function(i) {
 };
 
 MapView.prototype.displayInfoWindow = function(i) {
-  // if an info window already exists, close it
-  if (this.infoWindow) {
-    this.infoWindow.close();
+  // if an InfoWindow exists, use it, otherwise create an instance
+  if (!this.infoWindow) {
+    this.infoWindow = new google.maps.InfoWindow();
   }
 
-  // add lat & long to StreetView URL
+  this.infoWindow.setContent(this.getInfoWindowContent(i));
+
+  this.infoWindow.setPosition(this.markers[i].getPosition());
+
+  this.infoWindow.open(this.map, this.markers[i]);
+};
+
+MapView.prototype.getInfoWindowContent = function(i) {
   var imgURL = APP.GoogleStreetViewURL.replace('%lat%',
     this.markers[i].getPosition().lat());
 
@@ -141,12 +148,8 @@ MapView.prototype.displayInfoWindow = function(i) {
   // add imgURL to the infoWindow content
   infoWindowContent = infoWindowContent.replace('%imgURL%', imgURL);
 
-  this.infoWindow = new google.maps.InfoWindow({
-    content: infoWindowContent
-  });
-
-  this.infoWindow.open(this.map, this.markers[i]);
-};
+  return infoWindowContent;
+}
 
 MapView.prototype.setAllMarkersVisiable = function(i) {
   // only loop through markers and set visible if we have hidden markers before
