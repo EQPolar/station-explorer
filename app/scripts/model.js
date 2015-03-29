@@ -1,3 +1,5 @@
+/* globals APP, NotificationView, $, console */
+
 'use strict';
 
 function StationModel() {
@@ -18,7 +20,7 @@ StationModel.prototype.load = function(callback) {
     .fail(function(jqxhr, textStatus, error) {
       var err = textStatus + ', ' + error;
       if (APP.debug) {
-        console.log("Request Failed: " + err);
+        console.log('Request Failed: ' + err);
       }
 
       // notification window
@@ -33,7 +35,7 @@ StationModel.prototype.getWeather = function(i, callback) {
   var weatherData = {};
 
   $.ajax({
-    url: "http://api.openweathermap.org/data/2.5/weather",
+    url: 'http://api.openweathermap.org/data/2.5/weather',
     data: {
       lat: this.data[i].lat,
       lon: this.data[i].long,
@@ -54,8 +56,8 @@ StationModel.prototype.getWeather = function(i, callback) {
 
     error: function(xhr, status, errorThrown) {
       if (APP.debug) {
-        console.log("Error: " + errorThrown);
-        console.log("Status: " + status);
+        console.log('Error: ' + errorThrown);
+        console.log('Status: ' + status);
         console.dir(xhr);
       }
 
@@ -67,11 +69,11 @@ StationModel.prototype.getWeather = function(i, callback) {
 
 StationModel.prototype.getWikipedia = function(i, callback) {
   var that = this;
-  
+
   $.ajax({
 
     // The URL for the request
-    url: "http://en.wikipedia.org/w/api.php",
+    url: 'http://en.wikipedia.org/w/api.php',
 
     // The data to send (will be converted to a query string)
     data: {
@@ -86,19 +88,18 @@ StationModel.prototype.getWikipedia = function(i, callback) {
     },
 
     // Whether this is a POST or GET request
-    type: "GET",
+    type: 'GET',
 
     // The type of data we expect back
-    dataType: "jsonp",
+    dataType: 'jsonp',
 
     timeout: 5000,
 
     // Code to run if the request succeeds;
     // the response is passed to the function
     success: function(json) {
-      var j, extract;
-      var keys = [];
-      // console.log(json);
+      var j,
+        keys = [];
 
       for (j in json.query.pages) {
         keys.push(j);
@@ -108,12 +109,12 @@ StationModel.prototype.getWikipedia = function(i, callback) {
       // if keys contains more than one item this means wikiepdia sent back
       // more than one article when we are expecting 1, log to console for now
       if (keys.length > 1) {
-        console.log("More than one article key.");
+        console.log('More than one article key.');
       }
 
       // if the first key in not -1, we callback with the summary.  Otherwise
       // callback with the error message.
-      if (keys[0] != -1) {
+      if (keys[0] !== -1) {
         callback(json.query.pages[keys[0]].extract);
       } else {
         var notify = new NotificationView();
@@ -129,19 +130,14 @@ StationModel.prototype.getWikipedia = function(i, callback) {
     // status codes are passed to the function
     error: function(xhr, status, errorThrown) {
       if (APP.debug) {
-        console.log("Error: " + errorThrown);
-        console.log("Status: " + status);
+        console.log('Error: ' + errorThrown);
+        console.log('Status: ' + status);
         console.dir(xhr);
       }
 
       var notify = new NotificationView();
       notify.warningError('Could not get Wikipedia summary for ' +
         that.data[i].stationName);
-    },
-
-    // Code to run regardless of success or failure
-    complete: function(xhr, status) {
-      // alert("The request is complete!");
     }
   });
 };

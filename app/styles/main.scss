@@ -13,10 +13,15 @@ html {
   padding: 0;
   height: 100%;
   font-family: 'Lato', sans-serif;
+  font-size: 100%
 }
 
 p {
   font-family: 'Noto Serif', serif;
+}
+
+li {
+  cursor: pointer;
 }
 /* Google Map Canvas */
 /* debug values */
@@ -36,7 +41,6 @@ p {
   border: 1px solid #000;
   background: #eee;
   padding: 5px;
-  font-size: 11px;
 }
 #search {
   position: absolute;
@@ -45,6 +49,28 @@ p {
   z-index: 100;
   width: 300px;
   margin: 0 0 0 0;
+}
+
+#showall {
+  position: absolute;
+  top: 5px;
+  right: 15px;
+  z-index: 100;
+  width: auto;
+  margin: 0 0 0 0;
+}
+
+
+#list {
+  position: absolute;
+  bottom: 5px;
+  top: 5px;
+  left: 5px;
+  overflow:scroll;
+  border: 1px solid #000;
+  background: #eee;
+  z-index: 0;
+
 }
 .ui-tooltip {
   background: #4a4a4a;
@@ -69,7 +95,6 @@ p {
 .ui-menu .ui-menu-item a {
   background: red;
   height: 10px;
-  font-size: 8px;
 }
 ul.ui-autocomplete {
   list-style: none;

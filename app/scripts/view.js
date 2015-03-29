@@ -1,6 +1,10 @@
+/* globals APP, google, $, MapView, noty, console */
+
+'use strict';
+
+
 // :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:
-// Map Object will init and display the map.
-// param constructor: array of objects to map
+// MapView Object will init and display the map.
 // :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:
 
 function MapView() {
@@ -30,11 +34,11 @@ function MapView() {
 MapView.prototype.setMapBounds = function(lats, lngs) {
   var swBound, // SouthWest lat/lng bound
     neBound, // NorthEast lat/lng bound
-    bound,
+    bounds,
     extendPoint1,
     extendPoint2;
 
-  bound = new google.maps.LatLngBounds();
+  bounds = new google.maps.LatLngBounds();
 
   // SouthWest map bound is the MIN lattitude and long found in the search
   swBound = new google.maps.LatLng(Math.min.apply(Math, lats),
@@ -87,7 +91,7 @@ MapView.prototype.animateMarker = function(i) {
   this.markers[i].setAnimation(google.maps.Animation.BOUNCE);
 
   setTimeout(function() {
-    that.markers[i].setAnimation(null)
+    that.markers[i].setAnimation(null);
   }, APP.markerAnimateTimeout);
 };
 
@@ -149,9 +153,9 @@ MapView.prototype.getInfoWindowContent = function(i) {
   infoWindowContent = infoWindowContent.replace('%imgURL%', imgURL);
 
   return infoWindowContent;
-}
+};
 
-MapView.prototype.setAllMarkersVisiable = function(i) {
+MapView.prototype.setAllMarkersVisiable = function() {
   // only loop through markers and set visible if we have hidden markers before
   if (this.someMarkersHidden) {
     for (var i = 0, len = this.markers.length; i < len; i++) {
@@ -161,14 +165,19 @@ MapView.prototype.setAllMarkersVisiable = function(i) {
   }
 };
 
+// :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:
+// NotificationView Object will display error and warning messages using the
+// noty library.
+// :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:
+
 function NotificationView() {
-  // no constructor values
+  // no value to set in constructor
 }
 
 NotificationView.prototype.fatalError = function(msg) {
   var text = (msg || APP.defaultFatalMessage);
 
-  var n = noty({
+  noty({
     text: text,
     type: 'error',
     closeWith: ['click'],
@@ -190,7 +199,8 @@ NotificationView.prototype.fatalError = function(msg) {
 NotificationView.prototype.warningError = function(msg) {
   var text = (msg || APP.defaultWarningMessage);
 
-  var n = noty({
+  // creating a noty object will dislay notification
+  noty({
     layout: 'topRight',
     text: text,
     type: 'warning',
@@ -203,4 +213,4 @@ NotificationView.prototype.warningError = function(msg) {
       speed: 500 // unavailable - no need
     }
   });
-}
+};

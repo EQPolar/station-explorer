@@ -1,14 +1,9 @@
-'use strict';
+/* globals ko, google, $, MapView, StationModel*/
 
+'use strict';
 
 // :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:
 // MainViewModel
-// constructor will:
-//    1. create Station objects
-//    3. when station is ready
-//      a. create a map object, passing station data
-//      b. setup search
-//      c. apply bindings
 // :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:
 
 function MainViewModel() {
@@ -16,6 +11,10 @@ function MainViewModel() {
 
   // view object to hold all knockout objects
   this.view = {
+    // true when updates are happening, triggers loading animation
+    weatherUpdating: false,
+    wikiUpdating: false,
+
     query: ko.observable(),
     crsCode: ko.observable(),
     stationName: ko.observable(),
@@ -40,20 +39,44 @@ function MainViewModel() {
     mapFilter: function(event, ui) {
       that._mapFilter(event, ui);
     },
-    absorbEnter: function(data, event) {
-      // remove for now
-      // that._absorbEnter(data, event);
 
+    // empty because submits are ignored on the search box
+    submit: function() {},
+
+    // function to toggle the show all "list view"
+    toggleShowAll: function () {
+      that._toggleShowAll();
     },
-    // empty because submits are ignored
-    submit: function() {}
+
+    listHandler: function(i) {
+      that._listHandler(i);
+    }
   };
+}
+
+MainViewModel.prototype._listHandler = function(data) {
+  // close list view
+  this._toggleShowAll();
+
+  // lookup the station clicked by name and then trigger a click on it's marker
+  for (var i = 0, len = this.mapView.markers.length; i < len; i++) {
+    if (data === this.mapView.markers[i].title) {
+      google.maps.event.trigger(this.mapView.markers[i], 'click');
+      break;
+    }
+  }
 };
+
+// this will show/hide the show all "list view" by toggling the z-index 0 or 100
+MainViewModel.prototype._toggleShowAll = function() {
+  ($('#list').css('z-index') < 100) ? $('#list').css('z-index', 100) :
+    $('#list').css('z-index', 0);
+};
+
 
 // if a click event on an autocomplete search is recived, search through the
 // list of markers and trigger a click event
 MainViewModel.prototype._queryHandler = function(e, ui) {
-  // TODO: should this be in the MapView?
   for (var i = 0, len = this.mapView.markers.length; i < len; i++) {
     if (ui.item.value === this.mapView.markers[i].title) {
       google.maps.event.trigger(this.mapView.markers[i], 'click');
@@ -71,7 +94,7 @@ MainViewModel.prototype._mapFilter = function(e, ui) {
     lats = [],
     lngs = [];
 
-  // hide all map markers
+  // hide all map markers - then we will just show the markers in the search
   this.mapView.hideAllMapMarkers();
 
   // set the markers assosicated with autocomplete results to visiable
@@ -90,21 +113,11 @@ MainViewModel.prototype._mapFilter = function(e, ui) {
     }
   }
 
-  // set map bounds passed on the lat and lng values found
+  // set map bounds searched for using the lat and lng values found
   this.mapView.setMapBounds(lats, lngs);
-
-  // find the bounds of the search results
-
-
-};
-
-// filter out enter key presses so that our app won't reload
-MainViewModel.prototype._absorbEnter = function(data, event) {
-  return event.keyCode;
 };
 
 MainViewModel.prototype.bindMapMarkers = function(map, markers) {
-  // we need the current this scope in the closure
   var that = this;
 
   for (var i = 0, len = markers.length; i < len; i++) {
@@ -124,54 +137,58 @@ MainViewModel.prototype.bindMapMarkers = function(map, markers) {
 
         // set all markers to visiable - markers might be filtered due to search
         that.mapView.setAllMarkersVisiable(iCopy);
-      }
+      } // adding a semicolon here will break things
     })(i));
   }
 };
 
 MainViewModel.prototype.updateWeather = function(i) {
+  // trigger hiding the weather div and clear values
+  this.view.weatherUpdating = true;
+  this.view.weatherDescription('');
+  this.view.weatherCurrentTemp('');
+
+  // request new weather and then update view
   this.stationModel.getWeather(i, (function(data) {
     this.view.weatherLocationName(data.locationName);
-    // TODO: investigate using custom knockout handler to round?
     this.view.weatherCurrentTemp(Math.round(data.temp));
     this.view.weatherDescription(data.description);
+    this.weatherUpdating = false;
   }).bind(this));
 };
 
 MainViewModel.prototype.updateWikipeida = function(i) {
+  // replace current data
+  this.view.wikipediaText('updating...');
+
+  // request new wikipedia summary and update view on callback
   this.stationModel.getWikipedia(i, (function(data) {
     this.view.wikipediaText(data);
   }).bind(this));
 };
 
 MainViewModel.prototype.setLocation = function(i) {
-  // TODO: do I need to set location by CRS code?
-  // check to see if the location is the CRS code or index
-  $.isNumeric(i) ? this._setLocationByIdx(i) : this._setLocationbyCRS(i);
+  this._setLocationByIdx(i);
 
-  // any time the station data changes, make new json calls
-  // TODO: work here next!
+  // any time the station changes, update any related data
   this.updateWeather(i);
   this.updateWikipeida(i);
 };
 
 MainViewModel.prototype._setLocationByIdx = function(i) {
   // only set new Station if a change is necessary
-  if ((typeof self.stationName === "undefined") || (self.idx !== i)) {
-    this._updateModel(i);
+  if ((typeof this.view.stationName === 'undefined') || (this.view.idx !== i)) {
+    this._updateView(i);
   }
 };
 
-MainViewModel.prototype._updateModel = function(i) {
+MainViewModel.prototype._updateView = function(i) {
+  // updates the view
   this.view.idx = this.stationModel.data[i].idx;
   this.view.lat = this.stationModel.data[i].lat;
   this.view.long = this.stationModel.data[i].long;
   this.view.crsCode(this.stationModel.data[i].crsCode);
   this.view.stationName(this.stationModel.data[i].stationName);
-
-  // This is needed if the station is updated by clicking the map so the
-  // search box matches the currently selected station
-  this.view.query(this.stationModel.data[i].crsCode);
 };
 
 MainViewModel.prototype._initalizeSearch = function() {
@@ -210,94 +227,6 @@ MainViewModel.prototype._initialize = function() {
     this._initalizeSearch();
 
     // bind the view to this viewmodel
-    // console.log(self.view);
     ko.applyBindings(this.view);
   }).bind(this));
 };
-
-
-
-
-
-/*
-
-  // self.map = {};
-
-  this.queryHandler = function(event, ui) {
-    // TODO: have to get the text between [...] as the parm below
-    // self.setLocation(ui.item.value);
-
-    // trigger a click event on the map
-    // console.log(self.map.markers[0].title);
-    // console.log(ui.item.value);
-    // console.log(this);
-    for (var i = 0, len = this.map.markers.length; i < len; i++) {
-      // console.log(this.map.markers[i]);
-      if (ui.item.value === this.map.markers[i].title) {
-        google.maps.event.trigger(this.map.markers[i], 'click');
-        break;
-      }
-    }
-  };
-
-  // TODO: when focus leaves the search box, markers are restored...
-  self.mapFilter = function(event, ui) {
-    // hide all the markers
-    for (var k = 0, len1 = self.map.markers.length; k < len1; k++) {
-      self.map.markers[k].setVisible(false);
-    }
-
-    // set map bounds to searched results
-    // console.log(ui.content);
-    // console.log(this);
-
-    // find the max bounds of the currently searched markers
-    var southWestBound,
-      northEastBound,
-      bounds,
-      lats = [],
-      lngs = [],
-      i, j, len, len2;
-
-    for (i = 0, len2 = ui.content.length; i < len2; i++) {
-
-      for (var j = 0, len = self.map.markers.length; j < len; j++) {
-
-        if (ui.content[i].label === self.map.markers[j].getTitle()) {
-          self.map.markers[j].setVisible(true);
-
-          // create an array of all the lats and longs found
-          lats.push(self.map.markers[j].getPosition().lat());
-          lngs.push(self.map.markers[j].getPosition().lng());
-        }
-      }
-    }
-
-    // SouthWest map bound is the MIN lattitude and long found in the search
-    southWestBound =  new google.maps.LatLng(Math.min.apply(Math,lats),
-      Math.min.apply(Math,lngs));
-
-    // NorthEast map bound is the MAX lattitude and long found in the search
-    northEastBound = new google.maps.LatLng(Math.max.apply(Math,lats),
-      Math.max.apply(Math,lngs));
-
-    // create a latlng bounds object and then use that to fit the map to the
-    // bounds of the search
-    // self.map.fitBounds(new google.maps.LatLngBounds(southWestBound, northEastBound));
-    console.log(self.map.getZoom());
-  };
-
-MainViewModel.prototype = {
-  constructor: MainViewModel,
-  self: this,
-
-  _initializeSearch: function() {
-    for (var i = 0, len = Stations.data.length; i < len; i++) {
-      this.queryList.push(Stations.data[i].stationName + ' [' + Stations.data[i].crsCode + ']');
-    }
-  },
-
-
-
-
-*/
