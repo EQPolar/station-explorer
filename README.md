@@ -35,3 +35,4 @@ While this project meets the spec, of course there are always things that could 
 * offer the option to change between C and F
 * move the wikipedia summary and weather info to the infowindow.  The reason it isn't there now is that it turns out that having dynamic content in the infowindow using knockout is quite difficult.  
 * live departure/arrival info for stations.  This API requries approval from network rail to access
+* the wikipedia api function can't always look up the article based on the name of the location.  Probably the best way to solve this is to map the non-working locations to the articles by id.
