@@ -13,7 +13,7 @@ APP.debug = true;
 
 // this resource file in is in the scripts folder to make it work with github pages
 // can't load a file from the base dir
-APP.urlStationJSON = '/scripts/stations.json';
+APP.urlStationJSON = '../stations.json';
 
 APP.defaultMapCenter = {
   "lat": 53.7997, // Leeds is the center of the UK as far as I am concerned
