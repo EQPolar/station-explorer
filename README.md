@@ -2,7 +2,7 @@
 
 The project will create a mashup of various APIs to create allow the user to explorer information about UK train stations.
 
-To view a production version of this project go to: http://se.builtprecise.io
+To view a production version of this project go to: http://sm.builtprecise.io
 
 To run the development version of this project, you will need to clone it to your machine
 and then downloaded the project dependancies using bower.  Then you can use gulp to serve the project locally.
